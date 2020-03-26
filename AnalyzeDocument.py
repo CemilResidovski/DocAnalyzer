@@ -18,9 +18,12 @@ class AnalyzeDocument():
     def __str__(self):
         return self.body
 
-    def unique_words(self):
+    def word_count(self, unique=True):
         text = self.body.lower()
         # Translate punctuation chars (!"#$%&'()*+, -./:;<=>?@[\]^_`{|}~) into nothing, removing from string
         # set(cleaned) creates a set with only the unique letters
         cleaned = text.translate(str.maketrans('', '', string.punctuation)).split()
+        if not unique:
+            return len(cleaned)
+            
         return len(set(cleaned))
