@@ -5,6 +5,8 @@ from pathlib import Path
 import json
 import string
 import nltk
+# nltk.download('crubadan')
+# nltk.download('punkt')
 from nltk.classify.textcat import TextCat
 from nltk.corpus import wordnet, stopwords
 
@@ -28,26 +30,22 @@ class AnalyzeDocument():
             self.body = indata
         
     def word_tokenize(self):
+        """Return the text without punctuation characters or upper case letters"""
         text = self.body.lower()
         # Translate punctuation chars (!"#$%&'()*+, -./:;<=>?@[\]^_`{|}~) into nothing, removing from string
-        tokens = text.translate(str.maketrans('', '', string.punctuation)).split()
-        
-        return tokens
+        return text.translate(str.maketrans('', '', string.punctuation)).split()
     
     def language(self):
         tc = TextCat()
-        language = tc.guess_language(self.body)
-        
-        return language
+        return tc.guess_language(self.body)
 
-    def word_count(self, unique=True):
-        # set(tokens) creates a set with only the unique words
-        tokens = self.word_tokenize()
-        
-        if not unique:
-            return len(tokens)
-        
-        return len(set(tokens))
+    def word_count(self):
+        """Return the number of words in the text"""
+        return len(self.word_tokenize())
+
+    def unique_word_count(self):
+        """Return the number of unique words in the text"""
+        return len(set(self.word_tokenize()))
 
     def pos_dictionary(self, friendly=False, count=False):
         pos = nltk.pos_tag(self.word_tokenize(), lang=self.language())
