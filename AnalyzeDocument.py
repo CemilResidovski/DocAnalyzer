@@ -9,6 +9,7 @@ import nltk
 # nltk.download('punkt')
 from nltk.classify.textcat import TextCat
 from nltk.corpus import wordnet, stopwords
+from nltk.stem import SnowballStemmer
 
 def get_wordnet_pos(token):
     """Map POS tag to first character lemmatize() accepts"""
@@ -20,6 +21,16 @@ def get_wordnet_pos(token):
 
     return pos_tag_dict[pos_tag]
 
+def get_stem_language(language):
+    """Map language to form stem() accepts"""
+    # extend as needed
+    language_dict = {"eng": "english",
+                     "swe": "swedish",
+                     "ger": "german"}
+    
+    return language_dict[language]
+
+    
 class AnalyzeDocument():
     """Class for analyzing text documents"""
     def __init__(self, indata):
@@ -36,6 +47,7 @@ class AnalyzeDocument():
         return text.translate(str.maketrans('', '', string.punctuation)).split()
     
     def language(self):
+        """Return identified language of the text"""
         tc = TextCat()
         return tc.guess_language(self.body)
 
@@ -47,7 +59,9 @@ class AnalyzeDocument():
         """Return the number of unique words in the text"""
         return len(set(self.word_tokenize()))
 
-    def pos_dictionary(self, friendly=False, count=False):
+    def pos_dictionary(self, friendly=False):
+        """Return dictionary of part-of-speech tags in the text, optionally return tags with friendly names"""
+        # Get pos tags for each token 
         pos = nltk.pos_tag(self.word_tokenize(), lang=self.language())
         
         if friendly:
@@ -57,15 +71,20 @@ class AnalyzeDocument():
         else:
             pos_dict = {token: pos_tag for token, pos_tag in pos}
         
-        pos_tag_set = set(pos_dict.values())
-        pos_count_dict = {pos_tag: list(pos_dict.values()).count(pos_tag) for pos_tag in pos_tag_set}
-        
-        if count:
-            return pos_count_dict
-        
         return pos_dict
+        
+    def pos_count_dictionary(self):
+        """Return dictionary of part-of-speech tag count in the text"""
+        pos_tag_set = set(self.pos_dictionary().values())
+        pos_count_dict = {}
+        
+        for pos_tag in pos_tag_set:
+            pos_count_dict[pos_tag] = list(self.pos_dictionary().values()).count(pos_tag)
 
+        return pos_count_dict
+        
     def word_count_dictionary(self):
+        """Return dictionary of word count in the text"""
         tokens = self.word_tokenize()
         count_dict = {word: tokens.count(word) for word in tokens}
         count_dict_sorted = dict(sorted(count_dict.items(), key=lambda item: item[1], reverse=True))
@@ -73,6 +92,7 @@ class AnalyzeDocument():
         return count_dict_sorted
     
     def lemmatize(self):
+        """Return list of lemmatized words. Support only for English or Russian."""
         wnl = nltk.WordNetLemmatizer()
         lemmas = []
         
@@ -82,6 +102,19 @@ class AnalyzeDocument():
         
         return lemmas
     
+    def lemma_count(self):
+        lemmas = self.lemmatize()
+        return len(set(lemmas))
+
+    def stem(self):
+        stemmer = SnowballStemmer(get_stem_language(self.language()))
+        stems = []
+        
+        for token in self.word_tokenize():
+            stems.append(stemmer.stem(token))
+        
+        return stems
+
     def __repr__(self):
         return 'class AnalyzeDocument(indata=str)'
 
